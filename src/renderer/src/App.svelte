@@ -1,5 +1,6 @@
 <script lang="ts">
   import Versions from './components/Versions.svelte'
+  import ScssExample from './components/ScssExample.svelte'
   import electronLogo from './assets/electron.svg'
   import { cn } from './lib/utils'
   import { button, card } from './lib/variants'
@@ -109,6 +110,13 @@
         <p class="text-sm text-gray-600">Beautiful CSS animations built-in</p>
       </div>
     </div>
+  </div>
+
+  <!-- SCSS Example Components -->
+  <div class="grid grid-cols-1 md:grid-cols-3 gap-6 w-full max-w-4xl pt-8 animate-fade-in animate-delay-500">
+    <ScssExample title="Primary Example" variant="primary" />
+    <ScssExample title="Secondary Example" variant="secondary" />
+    <ScssExample title="Success Example" variant="success" />
   </div>
 
   <Versions />
