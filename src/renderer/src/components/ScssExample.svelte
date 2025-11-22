@@ -1,6 +1,13 @@
 <script lang="ts">
-  export let title: string = 'SCSS Example Component'
-  export let variant: 'primary' | 'secondary' | 'success' = 'primary'
+  import type { Snippet } from 'svelte'
+
+  interface Props {
+    title?: string
+    variant?: 'primary' | 'secondary' | 'success'
+    footer?: Snippet
+  }
+
+  let { title = 'SCSS Example Component', variant = 'primary', footer }: Props = $props()
 </script>
 
 <div class="scss-card" class:variant-primary={variant === 'primary'} class:variant-secondary={variant === 'secondary'} class:variant-success={variant === 'success'}>
@@ -12,18 +19,22 @@
     <li>SCSS variables</li>
     <li>Nesting</li>
     <li>Mixins</li>
-    <li>Functions (darken, lighten)</li>
+    <li>Functions (color.adjust)</li>
   </ul>
   <div class="card-footer">
-    <slot name="footer">
+    {#if footer}
+      {@render footer()}
+    {:else}
       <button class="styled-button">Click me</button>
-    </slot>
+    {/if}
   </div>
 </div>
 
 <style lang="scss">
   @use '../styles/variables' as *;
   @use '../styles/mixins' as *;
+
+  @use 'sass:color';
 
   .scss-card {
     @include card-shadow($hover: true);
@@ -40,7 +51,7 @@
       border-color: $primary-color;
 
       .card-title {
-        @include gradient-text($primary-color, darken($primary-color, 15%));
+        @include gradient-text($primary-color, color.adjust($primary-color, $lightness: -15%));
       }
     }
 
@@ -48,7 +59,7 @@
       border-color: $secondary-color;
 
       .card-title {
-        @include gradient-text($secondary-color, darken($secondary-color, 15%));
+        @include gradient-text($secondary-color, color.adjust($secondary-color, $lightness: -15%));
       }
     }
 
@@ -56,12 +67,12 @@
       border-color: $success-color;
 
       .card-title {
-        @include gradient-text($success-color, darken($success-color, 15%));
+        @include gradient-text($success-color, color.adjust($success-color, $lightness: -15%));
       }
     }
 
     &:hover {
-      border-color: darken($gray-200, 10%);
+      border-color: color.adjust($gray-200, $lightness: -10%);
       transform: translateY(-4px);
     }
   }
@@ -111,7 +122,7 @@
     @include focus-ring($primary-color);
 
     padding: $spacing-sm $spacing-lg;
-    background: linear-gradient(135deg, $primary-color, darken($primary-color, 10%));
+    background: linear-gradient(135deg, $primary-color, color.adjust($primary-color, $lightness: -10%));
     color: $white;
     border-radius: $radius-lg;
     font-weight: $font-weight-semibold;

@@ -4,6 +4,7 @@
   import electronLogo from './assets/electron.svg'
   import { cn } from './lib/utils'
   import { button, card } from './lib/variants'
+  import { Button } from '$lib/components/ui/button'
 
   const ipcHandle = (): void => window.electron.ipcRenderer.send('ping')
 </script>
@@ -117,6 +118,38 @@
     <ScssExample title="Primary Example" variant="primary" />
     <ScssExample title="Secondary Example" variant="secondary" />
     <ScssExample title="Success Example" variant="success" />
+  </div>
+
+  <!-- shadcn-svelte Button Examples -->
+  <div class="flex flex-wrap gap-4 pt-8 animate-fade-in animate-delay-600">
+    <Button variant="default">Default Button</Button>
+    <Button variant="secondary">Secondary</Button>
+    <Button variant="destructive">Destructive</Button>
+    <Button variant="outline">Outline</Button>
+    <Button variant="ghost">Ghost</Button>
+    <Button variant="link">Link</Button>
+  </div>
+
+  <div class="flex flex-wrap gap-4 animate-fade-in animate-delay-700">
+    <Button size="sm">Small</Button>
+    <Button size="default">Default Size</Button>
+    <Button size="lg">Large</Button>
+    <Button size="icon">
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        width="24"
+        height="24"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+      >
+        <path d="M5 12h14" />
+        <path d="m12 5 7 7-7 7" />
+      </svg>
+    </Button>
   </div>
 
   <Versions />
