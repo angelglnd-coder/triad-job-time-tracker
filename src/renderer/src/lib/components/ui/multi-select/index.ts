@@ -1,0 +1,8 @@
+import Root from "./multi-select.svelte";
+
+export {
+	Root,
+	Root as MultiSelect
+};
+
+export type { MultiSelectItem } from "./multi-select.svelte";
