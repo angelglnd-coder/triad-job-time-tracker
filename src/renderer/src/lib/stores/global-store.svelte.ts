@@ -126,6 +126,8 @@ class GlobalStore {
     // Also delete related operations
     const operations = this.getJobOperations(id)
     operations.forEach(op => this.operations.delete(op.id))
+    // Trigger Svelte reactivity by creating a new Map reference
+    this.operations = new Map(this.operations)
   }
 
   // ========== OPERATION METHODS ==========
@@ -159,6 +161,8 @@ class GlobalStore {
     }
 
     this.operations.set(operationId, operation)
+    // Trigger Svelte reactivity by creating a new Map reference
+    this.operations = new Map(this.operations)
     return operation
   }
 
@@ -212,14 +216,92 @@ class GlobalStore {
     if (operation) {
       const updatedOperation = { ...operation, ...updates, updated_at: new Date().toISOString() }
       this.operations.set(id, updatedOperation)
+      // Trigger Svelte reactivity by creating a new Map reference
+      this.operations = new Map(this.operations)
     }
   }
 
   deleteOperation(id: number): void {
     this.operations.delete(id)
+    // Trigger Svelte reactivity by creating a new Map reference
+    this.operations = new Map(this.operations)
     // Also delete related time entries
     const timeEntries = this.getOperationTimeEntries(id)
     timeEntries.forEach(te => this.timeEntries.delete(te.id))
+  }
+
+  // ========== ASSIGNMENT METHODS ==========
+
+  assignOperationToUser(operationId: number, userId: number): boolean {
+    const operation = this.operations.get(operationId)
+    const user = this.users.get(userId)
+
+    if (!operation || !user) {
+      return false
+    }
+
+    this.updateOperation(operationId, {
+      assigned_to_user_id: userId,
+      assigned_to_user: user,
+      status: 'assigned',
+      assigned_at: new Date().toISOString()
+    })
+
+    return true
+  }
+
+  unassignOperation(operationId: number): boolean {
+    const operation = this.operations.get(operationId)
+
+    if (!operation) {
+      return false
+    }
+
+    this.updateOperation(operationId, {
+      assigned_to_user_id: undefined,
+      assigned_at: undefined,
+      status: 'unassigned'
+    })
+
+    return true
+  }
+
+  getOperatorWorkload(userId: number): {
+    totalOperations: number
+    byStatus: Record<OperationStatus, number>
+    estimatedTimeMin: number
+  } {
+    const operations = this.getUserOperations(userId)
+
+    const byStatus = operations.reduce(
+      (acc, op) => {
+        acc[op.status] = (acc[op.status] || 0) + 1
+        return acc
+      },
+      {} as Record<OperationStatus, number>
+    )
+
+    const estimatedTimeMin = operations
+      .filter((op) => op.status !== 'finished' && op.status !== 'cancelled')
+      .reduce((total, op) => total + (op.planned_total_time_min - op.actual_time_min), 0)
+
+    return {
+      totalOperations: operations.length,
+      byStatus,
+      estimatedTimeMin
+    }
+  }
+
+  getAssignedOperations(): JobOperation[] {
+    return Array.from(this.operations.values())
+      .filter((op) => op.status === 'assigned')
+      .sort((a, b) => {
+        // Sort by assigned_at timestamp (newest first)
+        if (a.assigned_at && b.assigned_at) {
+          return new Date(b.assigned_at).getTime() - new Date(a.assigned_at).getTime()
+        }
+        return 0
+      })
   }
 
   // ========== TIME ENTRY METHODS ==========

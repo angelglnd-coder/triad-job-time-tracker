@@ -21,19 +21,9 @@
 				isActive: true,
 			},
 			{
-				title: "Jobs",
-				url: "#",
+				title: "Active Jobs",
+				url: "/jobs",
 				icon: BriefcaseIcon,
-				items: [
-					{
-						title: "Create Job",
-						url: "/create-job",
-					},
-					{
-						title: "Active Jobs",
-						url: "/jobs",
-					},
-				],
 			},
 			{
 				title: "Operations",

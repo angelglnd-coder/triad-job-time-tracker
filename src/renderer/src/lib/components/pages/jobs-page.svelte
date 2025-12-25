@@ -5,6 +5,7 @@
 	import * as Sheet from "$lib/components/ui/sheet";
 	import { Button } from "$lib/components/ui/button";
 	import { Badge } from "$lib/components/ui/badge";
+	import CreateJobDialog from "./jobs/create-job-dialog.svelte";
 	import RefreshCwIcon from "@lucide/svelte/icons/refresh-cw";
 	import type { JobStatus, Job, JobOperation } from "$lib/types";
 
@@ -128,10 +129,13 @@
 			<h1 class="text-3xl font-bold">Active Jobs</h1>
 			<p class="text-muted-foreground">View and manage active manufacturing jobs</p>
 		</div>
-		<Button onclick={() => loadJobs()} disabled={isLoading}>
-			<RefreshCwIcon class="mr-2 h-4 w-4" />
-			Refresh
-		</Button>
+		<div class="flex gap-2">
+			<CreateJobDialog onJobCreated={() => loadJobs()} />
+			<Button onclick={() => loadJobs()} disabled={isLoading}>
+				<RefreshCwIcon class="mr-2 h-4 w-4" />
+				Refresh
+			</Button>
+		</div>
 	</div>
 
 	{#if isLoading}

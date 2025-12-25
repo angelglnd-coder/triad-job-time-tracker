@@ -242,6 +242,26 @@ export interface FinishOperationFormData {
   notes?: string
 }
 
+// Operation Assignment Types
+export interface AssignmentFormData {
+  operator: User
+  job: Job
+  operation: JobOperation
+}
+
+export interface AssignmentSummary {
+  assignmentId: number
+  operatorName: string
+  operatorId: number
+  jobNumber: string
+  partNumber: string
+  operationName: string
+  operationSequence: number
+  assignedAt: string
+  hasWarning: boolean
+  warningMessage?: string
+}
+
 // Settings Types
 export interface AppSettings {
   netsuite_api_url?: string

@@ -1,26 +1,60 @@
 <script lang="ts">
-	import { operationStore } from "$lib/stores/operation-store.svelte";
-	import { onMount } from "svelte";
+	import AssignOperationDialog from "./assign-operations/assign-operation-dialog.svelte";
+	import { globalStore } from "$lib/stores/global-store.svelte";
+	import { Grid, Willow } from "@svar-ui/svelte-grid";
 	import * as Card from "$lib/components/ui/card";
-	import { Button } from "$lib/components/ui/button";
 	import { Badge } from "$lib/components/ui/badge";
-	import UserPlusIcon from "@lucide/svelte/icons/user-plus";
-	import FilterIcon from "@lucide/svelte/icons/filter";
+	import type { JobOperation } from "$lib/types";
 
-	onMount(() => {
-		operationStore.loadOperations();
-	});
+	// Get assigned operations
+	let assignedOperations = $derived(globalStore.getAssignedOperations());
 
-	function getStatusColor(status: string): string {
-		const colors: Record<string, string> = {
-			unassigned: "destructive",
-			assigned: "secondary",
-			in_progress: "default",
-			paused: "secondary",
-			finished: "secondary",
-		};
-		return colors[status] || "default";
+	// Format time in minutes to "Xh Ym" format
+	function formatTime(minutes: number): string {
+		if (minutes === 0) return "0m";
+		const hours = Math.floor(minutes / 60);
+		const mins = Math.round(minutes % 60);
+		if (hours === 0) return `${mins}m`;
+		if (mins === 0) return `${hours}h`;
+		return `${hours}h ${mins}m`;
 	}
+
+	// Format date to readable format
+	function formatDate(dateString: string | undefined): string {
+		if (!dateString) return "N/A";
+		const date = new Date(dateString);
+		return date.toLocaleDateString() + " " + date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+	}
+
+	// Grid columns configuration
+	const columns = [
+		{ id: "operation_name", header: "Operation", width: 150 },
+		{ id: "job_number", header: "Job", width: 150 },
+		{ id: "work_orders", header: "Work Orders", width: 200 },
+		{ id: "assigned_to", header: "Assigned To", width: 180 },
+		{ id: "planned_time", header: "Planned Time", width: 120 },
+		{ id: "assigned_at", header: "Assigned At", width: 180 },
+		{ id: "status", header: "Status", width: 120 },
+	];
+
+	// Transform operations for grid
+	let gridData = $derived(
+		assignedOperations.map((op) => {
+			const job = globalStore.getJob(op.job_id);
+			// Handle both work_order_numbers array and legacy work_order_number
+			const workOrders = job?.work_order_numbers?.join(", ") || job?.work_order_number || "N/A";
+			return {
+				id: op.id,
+				operation_name: op.operation_code ? `${op.operation_name} (${op.operation_code})` : op.operation_name,
+				job_number: job?.job_number || `#${op.job_id}`,
+				work_orders: workOrders,
+				assigned_to: op.assigned_to_user?.full_name || "N/A",
+				planned_time: formatTime(op.planned_total_time_min),
+				assigned_at: formatDate(op.assigned_at),
+				status: op.status,
+			};
+		})
+	);
 </script>
 
 <div class="flex flex-col gap-6 p-6">
@@ -29,84 +63,32 @@
 			<h1 class="text-3xl font-bold">Assign Operations</h1>
 			<p class="text-muted-foreground">Assign operations to operators</p>
 		</div>
-		<Button variant="outline">
-			<FilterIcon class="mr-2 h-4 w-4" />
-			Filter
-		</Button>
+		<AssignOperationDialog />
 	</div>
 
-	{#if operationStore.isLoading}
-		<div class="text-center py-12">
-			<p class="text-muted-foreground">Loading operations...</p>
-		</div>
-	{:else if operationStore.operations.length === 0}
-		<Card.Root>
-			<Card.Content class="pt-6 text-center py-12">
-				<p class="text-muted-foreground">No operations found</p>
-			</Card.Content>
-		</Card.Root>
-	{:else}
-		<div class="grid gap-4">
-			{#each operationStore.operations as operation}
-				<Card.Root>
-					<Card.Header>
-						<div class="flex items-center justify-between">
-							<div class="flex-1">
-								<div class="flex items-center gap-3">
-									<div>
-										<Card.Title>{operation.operation_name}</Card.Title>
-										<Card.Description>
-											Sequence {operation.operation_sequence}
-											{#if operation.job}
-												- Job {operation.job.job_number}
-											{/if}
-										</Card.Description>
-									</div>
-								</div>
-							</div>
-							<div class="flex items-center gap-2">
-								<Badge variant={getStatusColor(operation.status)}>
-									{operation.status}
-								</Badge>
-								{#if operation.status === "unassigned"}
-									<Button size="sm">
-										<UserPlusIcon class="mr-2 h-4 w-4" />
-										Assign
-									</Button>
-								{:else if operation.assigned_to_user}
-									<Button size="sm" variant="outline">
-										Reassign
-									</Button>
-								{/if}
-							</div>
-						</div>
-					</Card.Header>
-					<Card.Content class="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
-						{#if operation.work_center}
-							<div>
-								<span class="text-muted-foreground">Work Center:</span>
-								<div class="font-medium">{operation.work_center.name}</div>
-							</div>
-						{/if}
-						{#if operation.assigned_to_user}
-							<div>
-								<span class="text-muted-foreground">Assigned To:</span>
-								<div class="font-medium">{operation.assigned_to_user.full_name}</div>
-							</div>
-						{/if}
-						<div>
-							<span class="text-muted-foreground">Planned Time:</span>
-							<div class="font-medium">{operation.planned_total_time_min.toFixed(1)} min</div>
-						</div>
-						{#if operation.actual_time_min > 0}
-							<div>
-								<span class="text-muted-foreground">Actual Time:</span>
-								<div class="font-medium">{operation.actual_time_min.toFixed(1)} min</div>
-							</div>
-						{/if}
-					</Card.Content>
-				</Card.Root>
-			{/each}
-		</div>
-	{/if}
+	<!-- Assigned Operations Grid -->
+	<Card.Root>
+		<Card.Header>
+			<Card.Title>Currently Assigned Operations</Card.Title>
+			<Card.Description>
+				View all operations that have been assigned to operators
+			</Card.Description>
+		</Card.Header>
+		<Card.Content>
+			{#if assignedOperations.length === 0}
+				<div class="text-center py-12">
+					<p class="text-muted-foreground">No operations currently assigned</p>
+					<p class="text-sm text-muted-foreground mt-2">
+						Use the "Assign Work" button to assign operations to operators
+					</p>
+				</div>
+			{:else}
+				<div class="h-[calc(100vh-350px)]">
+					<Willow>
+						<Grid data={gridData} {columns} />
+					</Willow>
+				</div>
+			{/if}
+		</Card.Content>
+	</Card.Root>
 </div>

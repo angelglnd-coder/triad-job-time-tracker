@@ -24,6 +24,7 @@
     "@electron-toolkit/preload": "^3.0.2",
     "@electron-toolkit/utils": "^4.0.0",
     "@svar-ui/svelte-grid": "^2.3.0",
+    "@xstate/svelte": "^5.0.0",
     "clsx": "^2.1.1",
     "electron-updater": "^6.3.9",
     "lucide-svelte": "^0.554.0",

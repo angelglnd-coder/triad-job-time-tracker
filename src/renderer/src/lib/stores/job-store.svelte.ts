@@ -32,11 +32,11 @@ class JobStore {
     }
   }
 
-  async fetchPartFromNetSuite(partNumber: string) {
+  async fetchPartFromNetSuite(partNumber: string): Promise<boolean> {
     this.isLoading = true
     this.error = null
     try {
-      // TODO: Replace with actual API call
+      // TODO: Replace with actual API call when backend is ready
       // const data = await window.api.parts.syncFromNetSuite(partNumber)
       // this.partData = data
 
@@ -237,9 +237,11 @@ class JobStore {
 
       this.createFormData.part_data = this.partData
       this.createFormData.part_number = partNumber
+      return true
     } catch (err) {
       this.error = err instanceof Error ? err.message : 'Failed to fetch part data'
       this.partData = null
+      return false
     } finally {
       this.isLoading = false
     }
